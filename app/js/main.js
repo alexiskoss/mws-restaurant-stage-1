@@ -88,18 +88,6 @@ const initMap = () => {
 
   updateRestaurants();
 }
-/* window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
-} */
 
 /**
  * Update page and map for current restaurants.
@@ -193,11 +181,39 @@ const createRestaurantHTML = (restaurant) => {
     const restaurantURL = DBHelper.urlForRestaurant(restaurant);
     window.location = restaurantURL;
   }
-
   text.append(button);
-  li.append(text);
 
+  const favoriteDiv = document.createElement('div');
+  const favoriteBtn = document.createElement('button');
+  favoriteBtn.id = `favorite-${restaurant.id}`;
+  const isFavorite = (restaurant.is_favorite && restaurant['is_favorite'].toString() === 'true') ? true : false;
+  favoriteBtn.innerHTML = (isFavorite) ? '<i class="fas fa-star is-favorited"></i> favorite' : '<i class="fas fa-star is-not-favorited"></i> favorite';
+  const attr = document.createAttribute('aria-label');
+  attr.value = (isFavorite) ? `${restaurant.name} is favorited` : `${restaurant.name} is not favorited`;
+  favoriteBtn.setAttributeNode(attr);
+  
+  favoriteBtn.onclick = (e) => handleFavorite(restaurant, isFavorite);
+  favoriteDiv.className = 'favorite';
+  favoriteDiv.append(favoriteBtn);
+  text.append(favoriteDiv);
+
+  li.append(text);
   return li
+}
+
+/**
+ * Handle favorites for restaurant listings.
+ */
+const handleFavorite = (restaurant, isFavorite) => {
+  const newFavoriteState = !isFavorite;
+  const favoriteRestaurant = document.getElementById(`favorite-${restaurant.id}`);
+  favoriteRestaurant.onclick = null; 
+  
+  //update the restaurant's favorite state
+  restaurant.is_favorite = newFavoriteState;
+  favoriteRestaurant.onclick = (e) => handleFavorite(restaurant, !isFavorite);
+
+  DBHelper.handleFavorite(restaurant, newFavoriteState);
 }
 
 /**
